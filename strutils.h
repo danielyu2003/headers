@@ -1,17 +1,32 @@
 /** 
  * name: strutils.h
  * author: danyou
+ * notes: 
+ *   Insert `#define STRUTILS_IMPL` in only one unit before including this file.
  */
 
-#pragma once
+#ifndef strutils_h
+#define strutils_h
 
-#include <stdlib.h>
-#include <string.h>
+// Definitions:
 
 struct Split {
     char** words;
     size_t nwords;
 };
+
+struct Split split(char*, char*);
+char* join(char*, char**, size_t);
+
+#endif // strutils_h
+
+#ifdef STRUTILS_IMPL
+#undef STRUTILS_IMPL
+
+// Implementation:
+
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * Splits a deliminated, null-terminated string into an array of strings, 
@@ -65,3 +80,5 @@ char* join(char* delim, char** words, size_t nwords)
     }
     return buf;
 }
+
+#endif // STRUTILS_IMPL

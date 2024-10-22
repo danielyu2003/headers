@@ -1,2 +1,2 @@
 # headers
-Header libraries for personal projects
+Single-file header code for personal projects.
