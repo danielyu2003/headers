@@ -10,7 +10,7 @@
 #ifndef drswr_h
 #define drswr_h
 
-static inline size_t DRSWR(size_t, double*);
+static inline size_t DRSWR(size_t, const double*);
 
 #endif // drswr_h
 
@@ -27,7 +27,7 @@ static inline size_t DRSWR(size_t, double*);
  * @param    double*    p: Probability for each bin (must sum to 1).
  * @return   size_t     x: Index of the sampled bin.
  */
-static inline size_t DRSWR(size_t n, double *p)
+static inline size_t DRSWR(size_t n, const double *p)
 {
     double *cdf = malloc(n*sizeof(double));
     if (cdf == NULL)
