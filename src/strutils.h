@@ -5,10 +5,10 @@
  *   Insert `#define STRUTILS_IMPL` in only one unit before including this file.
  */
 
+// Definitions:
+
 #ifndef strutils_h
 #define strutils_h
-
-// Definitions:
 
 struct Split {
     char** words;
@@ -20,10 +20,10 @@ char* join(char*, char**, size_t);
 
 #endif // strutils_h
 
+// Implementation:
+
 #ifdef STRUTILS_IMPL
 #undef STRUTILS_IMPL
-
-// Implementation:
 
 #include <stdlib.h>
 #include <string.h>
