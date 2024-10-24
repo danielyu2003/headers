@@ -10,7 +10,7 @@
 #ifndef dsamp_h
 #define dsamp_h
 
-static inline int dsamp(const size_t, const double*, size_t*);
+static inline int dsamp(const size_t, const double*, size_t* const);
 
 #endif // dsamp_h
 
