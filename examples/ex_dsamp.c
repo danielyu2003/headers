@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DRSWR_IMPL
-#include "drswr.h"
+#define DSAMP_IMPL
+#include "dsamp.h"
 
 int main(void)
 {
@@ -13,7 +13,8 @@ int main(void)
     size_t counts[n] = {0};
 
     for (size_t i = 0; i < nans; i++) {
-        size_t sample = DRSWR(n, p);
+        size_t sample;
+        dsamp(n, p, &sample);
         counts[sample] += 1;
     }
 

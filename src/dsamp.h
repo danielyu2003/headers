@@ -10,7 +10,7 @@
 #ifndef dsamp_h
 #define dsamp_h
 
-static inline size_t dsamp(size_t, const double*);
+static inline int dsamp(const size_t, const double*, size_t*);
 
 #endif // dsamp_h
 
@@ -25,24 +25,27 @@ static inline size_t dsamp(size_t, const double*);
  * Discrete Random Sampling with Replacement
  * @param    size_t     n: Number of bins/length of p (min. 1).
  * @param    double*    p: Probability for each bin (must sum to 1).
- * @return   size_t     x: Index of the sampled bin.
+ * @param    size_t*    x: Pointer for index of the sampled bin.
+ * @return   int        _: 0 upon success and 1 upon error.
  */
-static inline size_t dsamp(size_t n, const double *p)
+static inline int dsamp(size_t n, const double *p, size_t* const x)
 {
     double *cdf = malloc(n*sizeof(double));
+    if (cdf == NULL)
+        return 1;
     memcpy(cdf, p, n*sizeof(double));
     for (size_t i = 1 ; i < n; i++)
         cdf[i] += cdf[i - 1];
     double uniformRand = ((double)rand() / (RAND_MAX + 1.0));
-    size_t ans = n - 1;
+    *x = n - 1;
     for (size_t j = 0; j < n; j++) {
         if (uniformRand <= cdf[j]) {
-            ans = j;
+            *x = j;
             break;
         }
     }
     free(cdf);
-    return ans;
+    return 0;
 }
 
 #endif // DSAMP_IMPL
