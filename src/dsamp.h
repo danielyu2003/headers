@@ -10,7 +10,7 @@
 #ifndef dsamp_h
 #define dsamp_h
 
-static inline int dsamp(const size_t, const double*, size_t* const);
+int dsamp(const size_t, const double*, size_t* const);
 
 #endif // dsamp_h
 
@@ -26,15 +26,15 @@ static inline int dsamp(const size_t, const double*, size_t* const);
  * @param    size_t     n: Number of bins/length of p (min. 1).
  * @param    double*    p: Probability for each bin (must sum to 1).
  * @param    size_t*    x: Pointer for index of the sampled bin.
- * @return   int        _: 0 upon success and 1 upon error.
+ * @return   int        _: 1 upon success and 0 upon error.
  */
-static inline int dsamp(size_t n, const double *p, size_t* const x)
+int dsamp(size_t n, const double *p, size_t* const x)
 {
     double *cdf = malloc(n*sizeof(double));
     if (cdf == NULL)
-        return 1;
+        return 0;
     memcpy(cdf, p, n*sizeof(double));
-    for (size_t i = 1 ; i < n; i++)
+    for (size_t i = 1; i < n; i++)
         cdf[i] += cdf[i - 1];
     double uniformRand = ((double)rand() / (RAND_MAX + 1.0));
     *x = n - 1;
@@ -45,7 +45,7 @@ static inline int dsamp(size_t n, const double *p, size_t* const x)
         }
     }
     free(cdf);
-    return 0;
+    return 1;
 }
 
 #endif // DSAMP_IMPL

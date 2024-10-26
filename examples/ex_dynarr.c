@@ -4,24 +4,33 @@
 #define DYNARR_IMPL
 #include "dynarr.h"
 
+int int_eq(void* l, void* r)
+{
+    return *(int*)l == *(int*)r;
+}
+
 int main(void)
 {
-    struct dynarr x;
-
     int a = 2;
     int b = 4;
     int c = 6;
 
+    struct dynarr x;
     dynarr_init(&x);
 
-    for (size_t i = 0; i < 256; i++) {
-        dynarr_append(&x, &a);
-        dynarr_append(&x, &b);
-        dynarr_append(&x, &c);
+    for (size_t i = 0; i < 1; i++) {
+        dynarr_push(&x, &a);
+        dynarr_push(&x, &b);
+        dynarr_push(&x, &c);
     }
+    printf("{%d %d %d}\n", *(int*)x.data[0], *(int*)x.data[1], *(int*)x.data[2]);
+
+    size_t ind;
+    dynarr_search(&x, &b, &ind, &int_eq);
     
-    printf("%zu\n", x.used);
-    printf("%zu\n", x.size);
+    dynarr_delete(&x, ind);
+
+    printf("{%d %d}\n", *(int*)x.data[0], *(int*)x.data[1]);
 
     dynarr_free(&x);
 

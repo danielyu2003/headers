@@ -15,8 +15,8 @@ struct Split {
     size_t nwords;
 };
 
-struct Split split(char*, char*);
-char* join(char*, char**, size_t);
+int split(char*, char*, struct Split*);
+int join(char*, char**, size_t, char**);
 
 #endif // strutils_h
 
@@ -29,56 +29,82 @@ char* join(char*, char**, size_t);
 #include <string.h>
 
 /**
- * Splits a deliminated, null-terminated string into an array of strings, 
- * and returns a struct containing the array and the number of strings.
+ * Splits a delimited, null-terminated string into an array of strings,
+ * storing the array and the count in the struct pointed to by result.
+ * Returns 1 for success and 0 for failure.
  * Remember to free the array after using it!
  */
-struct Split split(char* delim, char* string)
+int split(char* delim, char* string, struct Split* result)
 {
-    struct Split ret = {0};
+    if (result == NULL || delim == NULL || string == NULL)
+        return 0;
     size_t nwords = 0;
     char** words = NULL;
-    char* word = NULL;
     char* string_copy = strdup(string);
+    if (string_copy == NULL)
+        return 0;
     char* string_ptr = string_copy;
+    char* word;
     while ((word = strsep(&string_ptr, delim)) != NULL) {
-        size_t i = nwords;
-        words = realloc(words, (nwords + 1) * sizeof(char*));
         char* wordbuf = malloc(strlen(word) + 1);
+        if (wordbuf == NULL) {
+            free(string_copy);
+            for (size_t i = 0; i < nwords; i++)
+                free(words[i]);
+            free(words);
+            return 0;
+        }
         strcpy(wordbuf, word);
-        words[i] = wordbuf;
+        char** temp = realloc(words, (nwords + 1) * sizeof(char*));
+        if (temp == NULL) {
+            free(wordbuf);
+            free(string_copy);
+            for (size_t i = 0; i < nwords; i++)
+                free(words[i]);
+            free(words);
+            return 0;
+        }
+        words = temp;
+        words[nwords] = wordbuf;
         nwords++;
     }
     free(string_copy);
-    ret.nwords = nwords;
-    ret.words = words;
-    return ret;
+    result->nwords = nwords;
+    result->words = words;
+    return 1;
 }
 
 /**
- * Joins an array of strings into a single deliminated string.
- * Assumes that delim and all strings in words are null-terminated, and that
- * nwords is the correct number of strings in words.
+ * Joins an array of strings into a single delimited string.
+ * Assumes that delim and all strings in words are null-terminated,
+ * and that nwords is the correct number of strings in words.
+ * Stores the resulting string in the char* pointed to by result.
+ * Returns 1 for success and 0 for failure.
  * Remember to free the string after using it!
  */ 
-char* join(char* delim, char** words, size_t nwords)
+int join(char* delim, char** words, size_t nwords, char** result)
 {
-    if (nwords == 0)
-        return "";
+    if (result == NULL || delim == NULL || words == NULL)
+        return 0;
+    if (nwords == 0) {
+        *result = strdup("");
+        return *result != NULL;
+    }
     size_t bufsize = 0;
     for (size_t i = 0; i < nwords; i++)
         bufsize += strlen(words[i]);
-    bufsize += (strlen(delim) * (nwords - 1));
-    char* buf = malloc(bufsize+1);
+    bufsize += strlen(delim) * (nwords - 1);
+    char* buf = malloc(bufsize + 1);
     if (buf == NULL)
-        return "";
+        return 0;
     char* next = buf;
     for (size_t i = 0; i < nwords; i++) {
         next = stpcpy(next, words[i]);
-        if (i < (nwords-1))
+        if (i < (nwords - 1))
             next = stpcpy(next, delim);
     }
-    return buf;
+    *result = buf;
+    return 1;
 }
 
 #endif // STRUTILS_IMPL
