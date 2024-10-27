@@ -14,16 +14,18 @@ struct dynarr {
     size_t  used;   // count of elements present
     size_t  size;   // total number of elements
     void**  data;   // array buffer
+    void    (*free_entry)(void* entry);     // user defined!
+    int     (*entry_eq)(void* key, void* entry);  // user defined!
 };
 
-int dynarr_init(struct dynarr*);
+int dynarr_init(struct dynarr*, size_t*);
 int dynarr_free(struct dynarr*);
 int dynarr_resize(struct dynarr*, size_t);
 int dynarr_insert(struct dynarr*, void*, size_t);
 int dynarr_delete(struct dynarr*, size_t);
 int dynarr_push(struct dynarr*, void*);
 int dynarr_pop(struct dynarr*);
-int dynarr_search(struct dynarr*, void*, size_t*, int (*)(void*, void*));
+int dynarr_search(struct dynarr*, void*, size_t*);
 
 #endif // dynarr_h
 
@@ -35,18 +37,29 @@ int dynarr_search(struct dynarr*, void*, size_t*, int (*)(void*, void*));
 #include <string.h>
 #include <stdlib.h>
 
-int dynarr_init(struct dynarr* arr)
+// Important: Set user defined functions before calling!
+int dynarr_init(struct dynarr* arr, size_t* size)
 {
-    arr->data = calloc(16, sizeof(void*));
+    if (arr->free_entry == NULL || arr->entry_eq == NULL)
+        return 0;
+    size_t arr_size = 16;
+    if (size != NULL)
+        arr_size = *size;
+    arr->data = calloc(arr_size, sizeof(void*));
     if (arr->data == NULL)
         return 0;
-    arr->size = 16;
+    arr->size = arr_size;
     arr->used = 0;
     return 1;
 }
 
 int dynarr_free(struct dynarr* arr)
-{
+{    
+    for (size_t i = 0; i < arr->size; i++) {
+        if (arr->data[i] == NULL)
+            continue;
+        arr->free_entry(arr->data[i]);
+    }
     free(arr->data);
     arr->data = NULL;
     arr->size = 0;
@@ -59,9 +72,14 @@ int dynarr_resize(struct dynarr* arr, size_t n)
     void** tmp = realloc(arr->data, n * sizeof(void*));
     if (tmp == NULL)
         return 0;
+    if (n > arr->size) {
+        size_t zinit = n - arr->size;
+        memset(&tmp[arr->used], 0, zinit * sizeof(void*));
+    }
     arr->data = tmp;
     arr->size = n;
-    if (n < arr->used) arr->used = n;
+    if (n < arr->used)
+        arr->used = n;
     return 1;
 }
 
@@ -102,10 +120,10 @@ int dynarr_pop(struct dynarr* arr)
     return dynarr_delete(arr, (arr->used - 1));
 }
 
-int dynarr_search(struct dynarr* arr, void* item, size_t* index, int (*eq)(void* l, void* r))
+int dynarr_search(struct dynarr* arr, void* item, size_t* index)
 {
     for (size_t i = 0; i < arr->used; i++) {
-        if (eq(item, arr->data[i])) {
+        if (arr->entry_eq(item, arr->data[i])) {
             *index = i;
             return 1;
         }
