@@ -10,6 +10,8 @@
 #ifndef strutils_h
 #define strutils_h
 
+#include <stdlib.h>
+
 struct Split {
     char** words;
     size_t nwords;

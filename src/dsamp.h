@@ -10,6 +10,8 @@
 #ifndef dsamp_h
 #define dsamp_h
 
+#include <stdlib.h>
+
 int dsamp(const size_t, const double*, size_t* const);
 
 #endif // dsamp_h

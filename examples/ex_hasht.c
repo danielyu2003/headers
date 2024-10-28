@@ -4,27 +4,25 @@
 #define HASHT_IMPL
 #include "hasht.h"
 
-int ent_eq(void* lentry, void* rentry) 
-{ 
-    return (*(int*)lentry == *((int*)((struct hasht_entry*)rentry)->key)); 
-}
-
-// All hasht free functions need to follow this structure...
-void free_local(void* entry) 
-{ 
-    // Additional cleanup here...
-    free(entry);
-    return; 
-}
-
-void repr(struct hasht_entry* ent)
+int int_cmp(void* key, void* entry) 
 {
-    printf("{key: %d, val: %d}\n", *(int*)ent->key, *(int*)ent->val);
+    int lint = *(int*)key;
+    int rint = *(int*)((struct hasht_entry*)entry)->key;
+    if (lint > rint)
+        return 1;
+    if (lint < rint)
+        return -1;
+    return 0;
 }
 
 size_t identity(void* key)
 {
     return *(size_t*)key;
+}
+
+void repr(struct hasht_entry* ent)
+{
+    printf("{key: %d, val: %d}\n", *(int*)ent->key, *(int*)ent->val);
 }
 
 void printhasht(struct hasht* t)
@@ -33,7 +31,7 @@ void printhasht(struct hasht* t)
         struct dynarr* curr_bin = t->buf->data[i];
         if (curr_bin == NULL)
             continue;
-        for (size_t j = 0; j < curr_bin->size; j++) {
+        for (size_t j = 0; j < curr_bin->used; j++) {
             struct hasht_entry* curr_entry = curr_bin->data[j];
             if (curr_entry == NULL)
                 continue;
@@ -55,10 +53,9 @@ int main(void)
     struct hasht_entry bb = { .key = &b, .val = &b }; // 4, 4 <--
     struct hasht_entry ca = { .key = &c, .val = &a }; // 6, 2 <--
 
-    struct hasht x;
-    x.free_hasht_entry = free_local;
-    x.hasht_entry_eq = ent_eq;
-    x.hash_fn = identity;
+    struct hasht x = {0};
+    x.cmp_hasht_key = int_cmp;
+    x.hash = identity;
     hasht_init(&x, NULL);
 
     hasht_set(&x, aa);
@@ -67,6 +64,12 @@ int main(void)
     hasht_set(&x, ba);
     hasht_set(&x, bb);
     hasht_set(&x, ca);
+
+    printhasht(&x);
+
+    printf("Get Key: %d = Val: %d\n", b, *(int*)hasht_get(&x, &b));
+
+    hasht_del(&x, &b);
 
     printhasht(&x);
 
