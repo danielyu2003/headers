@@ -4,7 +4,7 @@
 #define DYNARR_IMPL
 #include "dynarr.h"
 
-int int_cmp(void* l, void* r) {
+int int_cmp(const void* l, const void* r) {
     int lint = *(int*)l;
     int rint = *(int*)r;
     if (lint > rint)
@@ -24,7 +24,7 @@ int main(void)
     struct dynarr x = {0};
     x.entry_cmp = int_cmp;
     
-    dynarr_init(&x, NULL);
+    dynarr_init(&x, 0);
 
     for (size_t i = 0; i < 1; i++) {
         dynarr_push(&x, &a);

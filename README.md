@@ -1,6 +1,6 @@
 # headers
 
-Single-file header code for personal projects.
+Single-file header libraries for personal projects. 
 
 General Format:
 

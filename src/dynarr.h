@@ -17,10 +17,10 @@ struct dynarr {
     size_t  size; // total number of elements
     void**  data; // array buffer
     void    (*entry_free)(void* entry); // user defined!
-    int     (*entry_cmp)(void* l, void* r); // user defined!
+    int     (*entry_cmp)(const void* l, const void* r); // user defined!
 };
 
-int dynarr_init(struct dynarr*, size_t*);
+int dynarr_init(struct dynarr*, size_t);
 int dynarr_free(struct dynarr*);
 int dynarr_resize(struct dynarr*, size_t);
 int dynarr_insert(struct dynarr*, void*, size_t);
@@ -42,16 +42,17 @@ int dynarr_sort(struct dynarr*);
 
 void static_free(void* entry)
 {
+    (void)(entry);
     return;
 }
 
-int dynarr_init(struct dynarr* arr, size_t* size)
+int dynarr_init(struct dynarr* arr, size_t size)
 {
     if (arr->entry_free == NULL)
         arr->entry_free = static_free;
-    size_t arr_size = 16;
-    if (size != NULL)
-        arr_size = *size;
+    
+    size_t arr_size = (size == 0) ? 16 : size;
+
     arr->data = calloc(arr_size, sizeof(void*));
     if (arr->data == NULL)
         return 0;
@@ -76,13 +77,13 @@ int dynarr_free(struct dynarr* arr)
 
 int dynarr_resize(struct dynarr* arr, size_t n)
 {
+    if (arr->size > SIZE_MAX / 2)
+        return 0;
     void** tmp = realloc(arr->data, n * sizeof(void*));
     if (tmp == NULL)
         return 0;
-    if (n > arr->size) {
-        size_t zinit = n - arr->size;
-        memset(&tmp[arr->used], 0, zinit * sizeof(void*));
-    }
+    if (n > arr->size)
+        memset(&tmp[arr->size], 0, (n - arr->size) * sizeof(void*));
     arr->data = tmp;
     arr->size = n;
     if (n < arr->used)
@@ -149,7 +150,7 @@ int dynarr_sort(struct dynarr* arr)
 {
     if (arr->entry_cmp == NULL)
         return 0;
-    for (int i = 1; i < arr->used; i++) {
+    for (size_t i = 1; i < arr->used; i++) {
         void* key = arr->data[i];
         int j = i - 1;
         while (j >= 0) {
